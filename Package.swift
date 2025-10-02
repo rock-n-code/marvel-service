@@ -1,26 +1,66 @@
-// swift-tools-version: 6.2
-// The swift-tools-version declares the minimum version of Swift required to build this package.
+// swift-tools-version: 5.10
+
+//===----------------------------------------------------------------------===
+//
+// This source file is part of the MarvelService open source project
+//
+// Copyright (c) -2025 Röck+Cöde VoF. and the MarvelService project authors
+// Licensed under the EUPL 1.2 or later.
+//
+// See LICENSE for license information
+// See CONTRIBUTORS for the list of MarvelService project authors
+//
+//===----------------------------------------------------------------------===
 
 import PackageDescription
 
 let package = Package(
-    name: "marvel-service",
+    name: MarvelService.package,
+    platforms: [
+        .iOS(.v13),
+        .macOS(.v10_15),
+        .tvOS(.v13),
+        .visionOS(.v1),
+        .watchOS(.v6)
+    ],
     products: [
-        // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
-            name: "marvel-service",
-            targets: ["marvel-service"]
-        ),
+            name: MarvelService.package,
+            targets: [MarvelService.target]
+        )
+    ],
+    dependencies: [
+        .package(url: "https://github.com/apple/swift-openapi-generator.git", from: "1.3.0"),
+        .package(url: "https://github.com/apple/swift-openapi-runtime", from: "1.5.0"),
+        .package(url: "https://github.com/apple/swift-openapi-urlsession", from: "1.0.2"),
+        .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.1.0")
     ],
     targets: [
-        // Targets are the basic building blocks of a package, defining a module or a test suite.
-        // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "marvel-service"
+            name: MarvelService.target,
+            dependencies: [
+                .product(name: "OpenAPIRuntime", package: "swift-openapi-runtime"),
+                .product(name: "OpenAPIURLSession", package: "swift-openapi-urlsession")
+            ],
+            path: "Sources/MarvelService",
+            plugins: [
+                .plugin(name: "OpenAPIGenerator", package: "swift-openapi-generator")
+            ]
         ),
         .testTarget(
-            name: "marvel-serviceTests",
-            dependencies: ["marvel-service"]
+            name: MarvelService.test,
+            dependencies: [
+                .byName(name: MarvelService.target)
+            ], 
+            path: "Tests/MarvelService"
         ),
     ]
 )
+
+// MARK: - Constants
+
+enum MarvelService {
+    static let package = "marvel-service"
+    static let target = "MarvelService"
+    static let test = "\(MarvelService.target)Tests"
+}
