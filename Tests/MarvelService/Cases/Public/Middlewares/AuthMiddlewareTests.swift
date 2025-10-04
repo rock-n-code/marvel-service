@@ -16,7 +16,8 @@ import struct Foundation.URL
 import struct Foundation.URLComponents
 import struct HTTPTypes.HTTPRequest
 import struct HTTPTypes.HTTPResponse
-import struct MarvelService.AuthMiddleware
+
+@testable import MarvelService
 
 @Suite("Auth Middleware", .tags(.middleware))
 struct AuthMiddlewareTest {
@@ -25,13 +26,45 @@ struct AuthMiddlewareTest {
     
 #if swift(>=6.2)
     @Test(arguments: Input.pathRequests)
-    func `intercept`(path: String?) async throws {
-        try await assertIntercept(path: path)
+    func `intercept with API key`(
+        path: String?
+    ) async throws {
+        try await assertIntercept(
+            path: path,
+            with: .Key.api
+        )
+    }
+    
+    @Test(arguments: Input.pathRequests)
+    func `intercept with private and public keys`(
+        path: String?
+    ) async throws {
+        try await assertIntercept(
+            path: path,
+            with: .Key.public,
+            and: .Key.private
+        )
     }
 #else
-    @Test("intercept", arguments: Input.pathRequests)
-    func intercept(path: String?) async throws {
-        try await assertIntercept(path: path)
+    @Test("intercept with API key", arguments: Input.pathRequests)
+    func interceptWithAPIKey(
+        path: String?
+    ) async throws {
+        try await assertIntercept(
+            path: path,
+            with: .Key.api
+        )
+    }
+    
+    @Test("intercept with private and public keys", arguments: Input.pathRequests)
+    func interceptWithKeys(
+        path: String?
+    ) async throws {
+        try await assertIntercept(
+            path: path,
+            with: .Key.public,
+            and: .Key.private
+        )
     }
 #endif
     
@@ -45,16 +78,26 @@ private extension AuthMiddlewareTest {
     
     /// Asserts the interception of a request to add authentication parameters in it.
     /// - Parameter path: A URI path for a request.
+    /// - Parameter apiKey: A Marvel (public) API key.
+    /// - Parameter privateKey: <#publicKey description#>
     /// - Throws: An error in case
-    func assertIntercept(path: String?) async throws {
+    func assertIntercept(
+        path: String?,
+        with apiKey: String,
+        and privateKey: String? = nil
+    ) async throws {
         // GIVEN
         let baseURL: URL = .baseURL
         let request: HTTPRequest = .init(path: path)
         
-        let middleware: AuthMiddleware = .init(
-            privateKey: .Key.private,
-            publicKey: .Key.public
-        )
+        let middleware: AuthMiddleware = if let privateKey {
+            .init(
+                privateKey: privateKey,
+                publicKey: apiKey
+            )
+        } else {
+            .init(apiKey: apiKey)
+        }
         
         // WHEN
         _ = try await confirmation { confirmation in
@@ -70,10 +113,15 @@ private extension AuthMiddlewareTest {
                     let urlComponents = try #require(URLComponents(string: pathRequest))
                     let queryItems = try #require(urlComponents.queryItems)
                     
-                    #expect(queryItems.count >= 3)
-                    #expect(queryItems.contains(where: { $0.name == "ts" }))
-                    #expect(queryItems.contains(where: { $0.name == "apikey" }))
-                    #expect(queryItems.contains(where: { $0.name == "hash" }))
+                    #expect(queryItems.contains(where: { $0.name == .Parameter.apiKey }))
+
+                    if privateKey == nil {
+                        #expect(queryItems.count >= 1)
+                    } else {
+                        #expect(queryItems.contains(where: { $0.name == .Parameter.hash }))
+                        #expect(queryItems.contains(where: { $0.name == .Parameter.timestamp }))
+                        #expect(queryItems.count >= 3)
+                    }
                 } else {
                     #expect(request.path == nil)
                 }

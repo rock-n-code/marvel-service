@@ -20,7 +20,7 @@ info:
   termsOfService: https://developer.marvel.com/terms
   version: Cable
 servers:
-- url: https://gateway.marvel.com/
+- url: https://gateway.marvel.com
   description: Live service
 tags:
 - name: characters
@@ -5763,13 +5763,10 @@ components:
           $ref: '#/components/schemas/ComicSummary'
     ErrorResponse:
       type: object
+      description: This is the standard error response type.
       properties:
         code:
-          type: integer
-          description: The HTTP status code of the returned result.
-        reason:
           type: string
-          description: A reason describing the error.
+          description: The HTTP status code of the returned result.
       required:
         - code
-        - reason

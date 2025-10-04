@@ -26,13 +26,24 @@ public struct AuthMiddleware {
     
     // MARK: Properties
     
+    /// A Marvel API key.
+    private let apiKey: String
+    
     /// A use case that generates a MD5 hash value to use as an authentication parameter.
-    private let hash: GenerateHashUseCase
-    
-    /// A Marvel API public key.
-    private let publicKey: String
-    
+    private let hash: GenerateHashUseCase?
+
     // MARK: Initializers
+    
+    /// Initializes this middleware with an api key.
+    ///
+    /// The middleware attaches the required `apikey` parameter to the URI path of the intercepted request.
+    /// This initializer should be used for client-side applications, as indicated in the [Marvel API documentation](https://developer.marvel.com/documentation/authorization)
+    ///
+    /// - Parameter apiKey: A Marvel API key.
+    public init(apiKey: String) {
+        self.apiKey = apiKey
+        self.hash = nil
+    }
 
     /// Initializes this middleware with private and public keys.
     ///
@@ -46,11 +57,11 @@ public struct AuthMiddleware {
         privateKey: String,
         publicKey: String
     ) {
+        self.apiKey = publicKey
         self.hash = .init(
             privateKey: privateKey,
             publicKey: publicKey
         )
-        self.publicKey = publicKey
     }
     
 }
@@ -68,37 +79,68 @@ extension AuthMiddleware: ClientMiddleware {
         operationID: String,
         next: @Sendable (HTTPRequest, HTTPBody?, URL) async throws -> (HTTPResponse, HTTPBody?)
     ) async throws -> (HTTPResponse, HTTPBody?) {
-        guard
-            let uriPath = request.path,
-            var urlComponents = URLComponents(string: uriPath)
-        else {
+        guard let path = request.path else {
             return try await next(request, body, baseURL)
         }
 
-        let queryItems = urlComponents.queryItems ?? []
-        let timestamp = Date().timeIntervalSince1970
+        return try await next(
+            .init(
+                method: request.method,
+                scheme: request.scheme,
+                authority: request.authority,
+                path: authenticatedPath(path),
+                headerFields: request.headerFields
+            ),
+            body,
+            baseURL
+        )
+    }
+    
+}
 
-        urlComponents.queryItems = queryItems + [
-            .init(name: "ts", value: timestamp.asString),
-            .init(name: "apikey", value: publicKey),
-            .init(name: "hash", value: hash(timestamp: timestamp))
-        ]
+// MARK: - Helpers
+
+private extension AuthMiddleware {
+    
+    // MARK: Functions
+    
+    /// Adds the necessary authentication parameters to a given request path.
+    /// - Parameter path: A request path to authenticate.
+    /// - Returns: A request path with the necessary authentication parameters added.
+    func authenticatedPath(_ path: String) -> String {
+        guard var urlComponents = URLComponents(string: path) else {
+            return path
+        }
         
-        let newPath = if let urlQuery = urlComponents.query {
+        var queryItems = urlComponents.queryItems ?? []
+        
+        queryItems.append(.init(
+            name: .Parameter.apiKey,
+            value: apiKey
+        ))
+        
+        if let hash {
+            let timestamp = Date().timeIntervalSince1970
+            
+            queryItems.append(contentsOf: [
+                .init(
+                    name: .Parameter.hash,
+                    value: hash(timestamp: timestamp)
+                ),
+                .init(
+                    name: .Parameter.timestamp,
+                    value: timestamp.asString
+                ),
+            ])
+        }
+        
+        urlComponents.queryItems = queryItems
+        
+        return if let urlQuery = urlComponents.query {
             urlComponents.path + "?" + urlQuery
         } else {
             urlComponents.path
         }
-
-        let newRequest = HTTPRequest(
-            method: request.method,
-            scheme: request.scheme,
-            authority: request.authority,
-            path: newPath,
-            headerFields: request.headerFields
-        )
-
-        return try await next(newRequest, body, baseURL)
     }
-    
+
 }
