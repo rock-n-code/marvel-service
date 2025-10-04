@@ -1,0 +1,14 @@
+//===----------------------------------------------------------------------===
+//
+// This source file is part of the MarvelService open source project
+//
+// Copyright (c) 2025 Röck+Cöde VoF. and the MarvelService project authors
+// Licensed under the EUPL 1.2 or later.
+//
+// See LICENSE for license information
+// See CONTRIBUTORS for the list of MarvelService project authors
+//
+//===----------------------------------------------------------------------===
+
+/// A namespace assigned for output arguments on test cases, that are expected results.
+enum Output {}
