@@ -6350,11 +6350,9 @@ components:
       required:
         - id
         - name
-        - description
         - modified
         - resourceURI
         - urls
-        - thumbnail
         - comics
         - stories
         - events
@@ -6474,7 +6472,6 @@ components:
         - title
         - issueNumber
         - variantDescription
-        - description
         - modified
         - isbn
         - upc
@@ -6492,7 +6489,6 @@ components:
         - collectedIssues
         - dates
         - prices
-        - thumbnail
         - images
         - creators
         - characters
@@ -6557,7 +6553,6 @@ components:
         - modified
         - resourceURI
         - urls
-        - thumbnail
         - series
         - stories
         - comics
@@ -6622,13 +6617,11 @@ components:
       required:
         - id
         - title
-        - description
         - resourceURI
         - urls
         - modified
         - start
         - end
-        - thumbnail
         - comics
         - stories
         - series
@@ -6697,21 +6690,17 @@ components:
       required:
         - id
         - title
-        - description
         - resourceURI
         - urls
         - startYear
         - endYear
         - rating
         - modified
-        - thumbnail
         - comics
         - stories
         - events
         - characters
         - creators
-        - next
-        - previous
     Story:
       type: object
       description: A story resource type that represents an indivisible, reusable components of comics. Most comics have two stories - a cover and an interior story (e. g. the cover from Amazing Fantasy \#15 and the origin of Spider-Man story from that comic) - but many, such as anthology comics and collections, will have more. Stories may be re-published in several comics, but the comic in which they originally appeared will always be present as a data point.
@@ -6759,17 +6748,14 @@ components:
       required:
         - id
         - title
-        - description
         - resourceURI
         - type
         - modified
-        - thumbnail
         - comics
         - series
         - events
         - characters
         - creators
-        - originalissue
         
 # Core Entity Summary Representations
     CharacterSummary:
@@ -6788,7 +6774,6 @@ components:
       required:
         - resourceURI
         - name
-        - role
     ComicSummary:
       type: object
       description: A type that represents a summary of a comic resource.
@@ -6818,7 +6803,6 @@ components:
       required:
         - resourceURI
         - name
-        - role
     EventSummary:
       type: object
       description: A type that represents a summary of an event resource.
@@ -7294,14 +7278,16 @@ components:
         etag:
           type: string
           description: A digest value of the content returned by the call.
-      required:
-        - code
-        - status
-        - copyright
-        - attributionText
-        - attributionHTML
-        - data
-        - etag
+# These required fields are commented out due to a possible bug from the service, that can returns all fields as null
+# when requesting events. (e. g.this happens when requesting all events without defining any filter parameter)
+#      required:
+#        - code
+#        - status
+#        - copyright
+#        - attributionText
+#        - attributionHTML
+#        - data
+#        - etag
     SeriesDataWrapper:
       type: object
       description: The wrapper for the series data.
@@ -7446,9 +7432,9 @@ components:
       description: A standard error type.
       properties:
         code:
-          type: string
+          type: integer
           description: The HTTP status code of the returned result.
-        message:
+        reason:
           type: string
           description: A human readable message providing more details about the error.
       required:

@@ -30,6 +30,7 @@ let package = Package(
         )
     ],
     dependencies: [
+        .package(url: "https://github.com/apple/swift-crypto.git", from: "3.13.0"),
         .package(url: "https://github.com/apple/swift-openapi-generator.git", from: "1.3.0"),
         .package(url: "https://github.com/apple/swift-openapi-runtime", from: "1.5.0"),
         .package(url: "https://github.com/apple/swift-openapi-urlsession", from: "1.0.2"),
@@ -39,6 +40,9 @@ let package = Package(
         .target(
             name: MarvelService.target,
             dependencies: [
+                .product(name: "Crypto", package: "swift-crypto", condition: .when(platforms: [
+                    .android, .linux, .openbsd, .windows
+                ])),
                 .product(name: "OpenAPIRuntime", package: "swift-openapi-runtime"),
                 .product(name: "OpenAPIURLSession", package: "swift-openapi-urlsession")
             ],

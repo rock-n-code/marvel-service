@@ -10,7 +10,13 @@
 //
 //===----------------------------------------------------------------------===
 
+#if canImport(CriptoKit)
 import CryptoKit
+#elseif canImport(Crypto)
+import Crypto
+#else
+import CommonCrypto
+#endif
 
 import struct Foundation.Data
 import struct Foundation.TimeInterval
@@ -51,10 +57,33 @@ struct GenerateHashUseCase {
         let stringToHash = timestamp.asString + self.privateKey + self.publicKey
         let dataToHash = Data(stringToHash.utf8)
 
+#if canImport(CriptoKit) || canImport(Crypto)
         return Insecure.MD5
             .hash(data: dataToHash)
-            .map { String(format: "%02x", $0) }
+            .map { String(format: .Format.hexadecimal, $0) }
             .joined()
+#else
+        return dataToHash
+            .withUnsafeBytes {
+                var hash = [UInt8](repeating: 0, count: Int(CC_MD5_DIGEST_LENGTH))
+                
+                CC_MD5($0.baseAddress, CC_LONG(dataToHash.count), &hash)
+                
+                return hash
+            }
+            .map { String(format: .Format.hexadecimal, $0) }
+            .joined()
+#endif
     }
     
+}
+
+// MARK: - Constants
+
+private extension String {
+    /// A namespace assigned to string format representations.
+    enum Format {
+        /// A string format for MD5 hash hexadecimal bytes.
+        static let hexadecimal = "%02x"
+    }
 }
