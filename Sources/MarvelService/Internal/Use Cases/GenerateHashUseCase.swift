@@ -34,7 +34,7 @@ struct GenerateHashUseCase {
     ///   - publicKey: A public key.
     init(
         privateKey: String,
-        publicKey: String,
+        publicKey: String
     ) {
         self.privateKey = privateKey
         self.publicKey = publicKey
