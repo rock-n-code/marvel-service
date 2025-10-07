@@ -3,17 +3,17 @@
 
 # Marvel Service
 
-A library written entirely with [Swift](https://www.swift.org) that allow the developer to interacts with the [Marvel API](https://developer.marvel.com) backend service.
+A library written entirely with [Swift](https://www.swift.org) that allow the developer to interact with the [Marvel Comics API](https://developer.marvel.com) backend service.
 
 ## Installation
 
-To use this library with your package, then add it as a dependency in the `Package.swift` file:
+To use this library, then add it as a dependency in the `Package.swift` file of your project:
 
 ```swift
 let package = Package(
     // name, platforms, products, etc.
     dependencies: [
-        .package(url: "https://github.com/rock-n-code/marvel-service", from: "1.0.0"),
+        .package(url: "https://github.com/rock-n-code/marvel-service", from: "1.1.0"),
         // other dependencies
     ],
     targets: [

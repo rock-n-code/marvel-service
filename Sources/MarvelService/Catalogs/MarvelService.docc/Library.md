@@ -16,7 +16,7 @@ Here's an example of how to add this library as a dependency into a `Package.swi
 let package = Package(
     // name, platforms, products, etc.
     dependencies: [
-        .package(url: "https://github.com/rock-n-code/marvel-service", from: "1.0.0"),
+        .package(url: "https://github.com/rock-n-code/marvel-service", from: "1.1.0"),
         // other dependencies
     ],
     targets: [
